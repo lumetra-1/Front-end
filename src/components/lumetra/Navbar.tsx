@@ -135,7 +135,7 @@ export function Navbar() {
 
         <div className="flex items-center gap-2 relative z-10">
           <a
-            href="#contact"
+            href="/Product"
             className="hidden lg:inline-flex btn-keycap"
           >
             <span className="text">Get Started</span>
@@ -182,7 +182,7 @@ export function Navbar() {
               })}
               <li>
                 <a
-                  href="#contact"
+                  href="/Product"
                   onClick={() => setOpen(false)}
                   className="mt-4 w-full btn-keycap"
                 >

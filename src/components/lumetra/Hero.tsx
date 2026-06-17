@@ -58,10 +58,10 @@ export function Hero() {
 
             {/* CTA button */}
             <a
-              href="#contact"
+              href="/Product"
               className="btn-keycap"
             >
-              <span className="text">Request A Quote</span>
+              <span className="text">Explore LumetraX</span>
             </a>
           </motion.div>
 
