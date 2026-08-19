@@ -2,6 +2,31 @@ import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Mail, Phone, MapPin } from "lucide-react";
 
+/* ─── Office location data ───────────────────────────────────────────── */
+interface OfficeLocation {
+  id: string;
+  name: string;
+  badge: string;
+  mapSrc: string;
+}
+
+const offices: OfficeLocation[] = [
+  {
+    id: "hq",
+    name: "Head Office",
+    badge: "Lumetra HQ · Los Angeles, CA",
+    mapSrc:
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3305.81378720166!2d-118.26007242428358!3d34.04864747315821!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c2c7b40e604355%3A0x58bc3ffc0a7f3ce5!2s700%20Wilshire%20Blvd%20%23520%2C%20Los%20Angeles%2C%20CA%2090017%2C%20USA!5e0!3m2!1sen!2slk!4v1781666748350!5m2!1sen!2slk",
+  },
+  {
+    id: "branch",
+    name: "Branch Office",
+    badge: "Branch Office · Colombo, Sri Lanka",
+    mapSrc:
+      "https://maps.google.com/maps?q=12A+Philip+Gunawardena+Mawatha,+Colombo+07,+Sri+Lanka&t=&z=15&ie=UTF8&iwloc=&output=embed",
+  },
+];
+
 /* ─── Info cards data ─────────────────────────────────────────────────── */
 const infoCards = [
   {
@@ -18,9 +43,15 @@ const infoCards = [
   },
   {
     icon: MapPin,
-    title: "Our Location",
+    title: "Head Office",
     value: "700 Wilshire Blvd, Suite 520, Los Angeles, CA 90017, USA",
-    href: "#",
+    href: "https://maps.google.com/?q=700+Wilshire+Blvd+Suite+520+Los+Angeles+CA+90017+USA",
+  },
+  {
+    icon: MapPin,
+    title: "Branch Office",
+    value: "12A Philip Gunawardena Mawatha, Colombo 07, Sri Lanka",
+    href: "https://maps.google.com/?q=12A+Philip+Gunawardena+Mawatha+Colombo+07+Sri+Lanka",
   },
 ];
 
@@ -40,8 +71,11 @@ export function Contact() {
   const [error, setError] = useState<string | null>(null);
   const [sliderValue, setSliderValue] = useState(0);
   const [snapping, setSnapping] = useState(false);
+  const [selectedOffice, setSelectedOffice] = useState<string>("hq");
   const sliderContainerRef = useRef<HTMLDivElement>(null);
   const isVerified = sliderValue === 100;
+
+  const activeOffice = offices.find((o) => o.id === selectedOffice) ?? offices[0];
 
   // Compute the handle's left offset in px to avoid invalid CSS calc()
   const handleWidth = 48;
@@ -152,9 +186,28 @@ export function Contact() {
             {/* Yellow glow accent on corner */}
             <div className="absolute -top-8 -left-8 w-48 h-48 rounded-full bg-primary/20 blur-3xl pointer-events-none z-10" />
 
+            {/* Office location toggle tabs */}
+            <div className="absolute top-4 right-4 z-20 flex items-center bg-background/90 backdrop-blur-md border border-white/10 rounded-xl p-1 shadow-xl">
+              {offices.map((office) => (
+                <button
+                  key={office.id}
+                  type="button"
+                  onClick={() => setSelectedOffice(office.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-sans font-medium transition-all duration-200 cursor-pointer ${
+                    selectedOffice === office.id
+                      ? "bg-primary text-black font-semibold shadow"
+                      : "text-white/70 hover:text-white"
+                  }`}
+                >
+                  {office.name}
+                </button>
+              ))}
+            </div>
+
             <iframe
-              title="Lumetra Location Map"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3305.81378720166!2d-118.26007242428358!3d34.04864747315821!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c2c7b40e604355%3A0x58bc3ffc0a7f3ce5!2s700%20Wilshire%20Blvd%20%23520%2C%20Los%20Angeles%2C%20CA%2090017%2C%20USA!5e0!3m2!1sen!2slk!4v1781666748350!5m2!1sen!2slk"
+              key={activeOffice.id}
+              title={`Lumetra ${activeOffice.name} Location Map`}
+              src={activeOffice.mapSrc}
               className="w-full h-full min-h-[300px] sm:min-h-[380px] lg:min-h-full border-0"
               loading="lazy"
               allowFullScreen
@@ -163,7 +216,7 @@ export function Contact() {
             {/* Overlay badge */}
             <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 bg-background/90 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-2.5 shadow-xl">
               <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-              <span className="text-white text-xs font-sans font-medium">Lumetra HQ · Los Angeles, CA</span>
+              <span className="text-white text-xs font-sans font-medium">{activeOffice.badge}</span>
             </div>
           </motion.div>
 
@@ -325,26 +378,32 @@ export function Contact() {
           whileInView="show"
           viewport={{ once: true, margin: "-40px" }}
           variants={{ hidden: {}, show: { transition: { staggerChildren: 0.1 } } }}
-          className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4"
+          className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
         >
           {infoCards.map((card) => (
             <motion.a
               key={card.title}
               href={card.href}
+              target={card.href.startsWith("http") ? "_blank" : undefined}
+              rel={card.href.startsWith("http") ? "noopener noreferrer" : undefined}
+              onClick={() => {
+                if (card.title === "Head Office") setSelectedOffice("hq");
+                if (card.title === "Branch Office") setSelectedOffice("branch");
+              }}
               variants={fadeUp}
-              className="group flex items-center gap-4 bg-black border border-white/10 rounded-2xl px-5 py-4 hover:border-primary/40 hover:shadow-[0_0_20px_rgba(249,221,11,0.12)] transition-all duration-300"
+              className="group flex items-start gap-3.5 bg-black border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-primary/40 hover:shadow-[0_0_20px_rgba(249,221,11,0.12)] transition-all duration-300"
             >
               {/* Icon bubble */}
-              <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 mt-0.5">
                 <card.icon className="w-5 h-5" />
               </div>
 
               {/* Text */}
-              <div className="min-w-0">
-                <p className="text-xs text-white/50 font-sans uppercase tracking-wider mb-0.5">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-white/50 font-sans uppercase tracking-wider mb-1">
                   {card.title}
                 </p>
-                <p className="text-sm font-sans font-semibold text-white truncate group-hover:text-primary transition-colors duration-300">
+                <p className="text-xs sm:text-sm font-sans font-medium text-white group-hover:text-primary transition-colors duration-300 leading-snug break-words">
                   {card.value}
                 </p>
               </div>
